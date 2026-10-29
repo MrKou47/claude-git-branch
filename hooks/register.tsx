@@ -6,9 +6,6 @@ import type { Repo } from '../types'
 const POLL_MS = 10_000
 const FETCH_MS = 5 * 60_000
 
-// VS Code's gitDecoration modified / untracked foregrounds (Dark+).
-const COLORS = { modified: '#E2C08D', added: '#73C991' }
-
 const ICONS = { pull: '⤓', main: '⌂', fetch: '↻' }
 
 const repo = atom({ plugin: 'git-branch', key: 'repo' } as const, null)
@@ -68,11 +65,27 @@ async function mainBranchOf($: EngineInterface): Promise<string | null> {
   return null
 }
 
+function summary(r: Repo): string {
+  const marks = [
+    r.behind > 0 ? `↓${r.behind}` : '',
+    r.ahead > 0 ? `↑${r.ahead}` : '',
+    r.changes > 0 ? `●${r.changes}` : '',
+    r.mainBehind > 0 ? `${r.mainBranch}↓${r.mainBehind}` : '',
+  ].filter(Boolean)
+
+  if (marks.length === 0 && r.upstream !== null) {
+    marks.push('✓')
+  }
+
+  return marks.join(' ')
+}
+
 async function refresh($: EngineInterface): Promise<void> {
   const status = await git($, ['status', '--porcelain=v2', '--branch'])
 
   if (!status.ok) {
     await update($, repo, () => null)
+    $.ui.status(undefined)
 
     return
   }
@@ -94,6 +107,9 @@ async function refresh($: EngineInterface): Promise<void> {
 
   const next: Repo = { ...parsed, mainBranch, mainBehind }
   await update($, repo, () => next)
+  // The status line has the room for a long branch name; the footer slot
+  // beside it is capped, so it holds only the actions.
+  $.ui.status(`⎇ ${next.branch} ${summary(next)}`.trimEnd())
 }
 
 async function fetchRemote($: EngineInterface): Promise<void> {
@@ -199,20 +215,9 @@ export const register: Register = on => {
 
     const working = await read($, busy)
     const { Box, Button, Text } = $.ui.resolve(e)
-    const isClean = r.behind === 0 && r.ahead === 0 && r.changes === 0
 
     return (
       <Box flexDirection="row" gap={1} alignItems="center">
-        <Text dimColor>⎇ {r.branch}</Text>
-        {r.behind > 0 && <Text color={COLORS.modified}>↓{r.behind}</Text>}
-        {r.ahead > 0 && <Text color={COLORS.added}>↑{r.ahead}</Text>}
-        {r.changes > 0 && <Text color={COLORS.modified}>●{r.changes}</Text>}
-        {isClean && r.upstream !== null && <Text color={COLORS.added}>✓</Text>}
-        {r.mainBehind > 0 && (
-          <Text dimColor>
-            {r.mainBranch}↓{r.mainBehind}
-          </Text>
-        )}
         {working !== null ? (
           <Text dimColor>…</Text>
         ) : (

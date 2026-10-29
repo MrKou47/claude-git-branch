@@ -2,7 +2,8 @@
 
 A Claude Code mod that keeps the workspace's git state in view.
 
-- **Prompt footer** (terminal and desktop, right-hand side): `⎇ <branch>` followed by `↓n` (behind upstream), `↑n` (ahead), `●n` (changed files), or `✓` when clean and up to date, in VS Code's git colours, plus how far the local main branch is behind `origin`, and icon actions:
+- **Status line** (under the prompt): `⎇ <branch>` followed by `↓n` (behind upstream), `↑n` (ahead), `●n` (changed files), `main↓n` (local main behind `origin`), or `✓` when clean and up to date.
+- **Prompt footer** (terminal and desktop, right-hand side), icon actions:
   - **⤓ Pull branch**: `git pull --rebase --autostash`, so local commits are replayed on top and no merge commit is made.
   - **⌂ Update main**: fast-forwards the local main branch (`git fetch origin main:main`, or a pull when you are on main).
   - **↻ Fetch**: `git fetch --prune origin` and refresh.
