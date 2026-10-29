@@ -17,22 +17,21 @@ function answer(argv: readonly string[]): string {
   return ''
 }
 
-test('the band shows behind, ahead, changes and the quick actions', async ($, on) => {
+test('the footer shows behind, ahead, changes and the quick actions', async ($, on) => {
   on('process.run', (_, e) => ({ value: { exitCode: 0, stdout: answer(e.argv), stderr: '' } }))
   on('command.register', (_, e) => ({ value: { command: e.name } }))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
   on('turn.complete', () => ({ text: '' }))
   on('clock.every', () => ({ value: undefined }))
-  on('ui.status', () => ({ value: undefined }))
 
   await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
   await $.turn.complete({ answer: '' })
 
   const ui = await $.ui.mount({
     plugin: 'git-branch',
-    component: 'AbovePrompt',
+    component: 'SessionMode',
     surface: 'desktop',
-    props: { hasSurvey: false, isWorking: false, rows: 10 },
+    props: { modes: [] },
   })
 
   expect((await ui.find({ type: 'Text', text: /feature/ }))?.text).toBe('⎇ feature')

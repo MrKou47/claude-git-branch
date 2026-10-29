@@ -68,26 +68,11 @@ async function mainBranchOf($: EngineInterface): Promise<string | null> {
   return null
 }
 
-function summary(r: Repo): string {
-  const marks = [
-    r.behind > 0 ? `↓${r.behind}` : '',
-    r.ahead > 0 ? `↑${r.ahead}` : '',
-    r.changes > 0 ? `●${r.changes}` : '',
-  ].filter(Boolean)
-
-  if (r.upstream === null && !r.isDetached) {
-    marks.push('no upstream')
-  }
-
-  return marks.length > 0 ? marks.join(' ') : '✓'
-}
-
 async function refresh($: EngineInterface): Promise<void> {
   const status = await git($, ['status', '--porcelain=v2', '--branch'])
 
   if (!status.ok) {
     await update($, repo, () => null)
-    $.ui.status(undefined)
 
     return
   }
@@ -109,7 +94,6 @@ async function refresh($: EngineInterface): Promise<void> {
 
   const next: Repo = { ...parsed, mainBranch, mainBehind }
   await update($, repo, () => next)
-  $.ui.status(`⎇ ${next.branch} ${summary(next)}`)
 }
 
 async function fetchRemote($: EngineInterface): Promise<void> {
@@ -204,10 +188,12 @@ export const register: Register = on => {
     return next(e)
   })
 
-  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
+  // Drawn in the prompt footer's right-hand slot, beside the engine's own mode
+  // labels, so it takes no row of its own.
+  on('ui.render', { component: 'SessionMode' }, async ($, e, next) => {
     const r = await read($, repo)
 
-    if (e.props.hasSurvey || r === null) {
+    if (r === null) {
       return next(e)
     }
 
@@ -217,7 +203,7 @@ export const register: Register = on => {
 
     return (
       <Box flexDirection="row" gap={1} alignItems="center">
-        <Text>⎇ {r.branch}</Text>
+        <Text dimColor>⎇ {r.branch}</Text>
         {r.behind > 0 && <Text color={COLORS.modified}>↓{r.behind}</Text>}
         {r.ahead > 0 && <Text color={COLORS.added}>↑{r.ahead}</Text>}
         {r.changes > 0 && <Text color={COLORS.modified}>●{r.changes}</Text>}
@@ -240,6 +226,7 @@ export const register: Register = on => {
             <Button key="fetch" plain dimColor label={ICONS.fetch} onPress={() => fetchRemote($)} />
           </Box>
         )}
+        {e.props.modes.length > 0 && <Text dimColor>{e.props.modes.join(' & ')}</Text>}
       </Box>
     )
   })
