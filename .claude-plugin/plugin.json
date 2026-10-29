@@ -1,0 +1,9 @@
+{
+  "name": "git-branch",
+  "version": "0.2.0",
+  "description": "Shows the current git branch, whether it is behind or dirty, and one-click pulls for it and the main branch",
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "MrKou47"
+  }
+}

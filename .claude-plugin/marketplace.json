@@ -1,0 +1,13 @@
+{
+  "name": "claude-git-branch",
+  "owner": {
+    "name": "MrKou47"
+  },
+  "plugins": [
+    {
+      "name": "git-branch",
+      "source": "./"
+    }
+  ],
+  "description": "git-branch mod for Claude Code"
+}
