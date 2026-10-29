@@ -221,7 +221,7 @@ export const register: Register = on => {
               <Button key="pull" plain dimColor label={ICONS.pull} onPress={() => pullCurrent($)} />
             )}
             {r.mainBranch !== null && (
-              <Button key="main" plain dimColor label={ICONS.main} onPress={() => pullMain($)} />
+              <Button key="main" plain dimColor label={`${ICONS.main} ${r.mainBranch}`} onPress={() => pullMain($)} />
             )}
             <Button key="fetch" plain dimColor label={ICONS.fetch} onPress={() => fetchRemote($)} />
           </Box>
