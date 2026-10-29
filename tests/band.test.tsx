@@ -36,9 +36,9 @@ test('the band shows behind, ahead, changes and the quick actions', async ($, on
   })
 
   expect((await ui.find({ type: 'Text', text: /feature/ }))?.text).toBe('⎇ feature')
-  expect((await ui.find({ type: 'Text', text: /behind/ }))?.text).toBe('↓2 behind')
-  expect((await ui.find({ type: 'Text', text: /ahead/ }))?.text).toBe('↑1 ahead')
-  expect((await ui.find({ type: 'Text', text: /changed/ }))?.text).toBe('●2 changed')
+  expect((await ui.find({ type: 'Text', text: /↓2/ }))?.text).toBe('↓2')
+  expect((await ui.find({ type: 'Text', text: /↑/ }))?.text).toBe('↑1')
+  expect((await ui.find({ type: 'Text', text: /●/ }))?.text).toBe('●2')
   expect(await ui.find({ type: 'Button', key: 'pull' })).toBeDefined()
   expect(await ui.find({ type: 'Button', key: 'main' })).toBeDefined()
   await ui.unmount()

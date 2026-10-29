@@ -6,6 +6,11 @@ import type { Repo } from '../types'
 const POLL_MS = 10_000
 const FETCH_MS = 5 * 60_000
 
+// VS Code's gitDecoration modified / untracked foregrounds (Dark+).
+const COLORS = { modified: '#E2C08D', added: '#73C991' }
+
+const ICONS = { pull: '⤓', main: '⌂', fetch: '↻' }
+
 const repo = atom({ plugin: 'git-branch', key: 'repo' } as const, null)
 const busy = atom({ plugin: 'git-branch', key: 'busy' } as const, null)
 
@@ -137,7 +142,8 @@ async function pullCurrent($: EngineInterface): Promise<void> {
     return
   }
 
-  await run($, `Pull ${r.branch}`, ['pull', '--ff-only'])
+  // Rebase local commits onto upstream so a pull never adds a merge commit.
+  await run($, `Pull ${r.branch}`, ['pull', '--rebase', '--autostash'])
 }
 
 async function pullMain($: EngineInterface): Promise<void> {
@@ -210,29 +216,29 @@ export const register: Register = on => {
     const isClean = r.behind === 0 && r.ahead === 0 && r.changes === 0
 
     return (
-      <Box flexDirection="row" gap={1}>
+      <Box flexDirection="row" gap={1} alignItems="center">
         <Text>⎇ {r.branch}</Text>
-        {r.behind > 0 && <Text color="yellow">↓{r.behind} behind</Text>}
-        {r.ahead > 0 && <Text color="cyan">↑{r.ahead} ahead</Text>}
-        {r.changes > 0 && <Text color="red">●{r.changes} changed</Text>}
-        {isClean && r.upstream !== null && <Text color="green">✓ up to date</Text>}
+        {r.behind > 0 && <Text color={COLORS.modified}>↓{r.behind}</Text>}
+        {r.ahead > 0 && <Text color={COLORS.added}>↑{r.ahead}</Text>}
+        {r.changes > 0 && <Text color={COLORS.modified}>●{r.changes}</Text>}
+        {isClean && r.upstream !== null && <Text color={COLORS.added}>✓</Text>}
         {r.mainBehind > 0 && (
           <Text dimColor>
-            ({r.mainBranch} ↓{r.mainBehind})
+            {r.mainBranch}↓{r.mainBehind}
           </Text>
         )}
         {working !== null ? (
-          <Text dimColor>{working}…</Text>
+          <Text dimColor>…</Text>
         ) : (
-          <>
+          <Box flexDirection="row" gap={1}>
             {r.upstream !== null && (
-              <Button key="pull" label="Pull branch" onPress={() => pullCurrent($)} />
+              <Button key="pull" plain dimColor label={ICONS.pull} onPress={() => pullCurrent($)} />
             )}
             {r.mainBranch !== null && (
-              <Button key="main" label={`Update ${r.mainBranch}`} onPress={() => pullMain($)} />
+              <Button key="main" plain dimColor label={ICONS.main} onPress={() => pullMain($)} />
             )}
-            <Button key="fetch" label="Fetch" onPress={() => fetchRemote($)} />
-          </>
+            <Button key="fetch" plain dimColor label={ICONS.fetch} onPress={() => fetchRemote($)} />
+          </Box>
         )}
       </Box>
     )
